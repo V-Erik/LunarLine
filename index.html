@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LunarLines | Home</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    
+    <nav class="navbar">
+        <a href="index.html" class="logo">🌙 LunarLines</a>
+        <div class="nav-links">
+            <a href="index.html" class="active">Inicio</a>
+            <a href="galeria.html">Galería</a>
+            <a href="pedidos.html">Pedidos</a>
+        </div>
+        <div class="nav-actions">
+            <a href="dashboard.html" class="nav-user-link" id="navUserIcon">
+                <img src="" alt="Mi Perfil" class="nav-user-avatar" id="navUserAvatarImg">
+            </a>
+            
+            <a href="login.html" id="navLoginBtn" class="btn btn-ghost">Entrar</a>
+            <a href="registro.html" id="navRegBtn" class="btn btn-primary">Registrarse</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Arte que <span class="text-gradient">trasciende</span><br>tu imaginación.</h1>
+            <p>Plataforma premium para comisiones de arte. Conectamos tus ideas con artistas certificados.</p>
+            <a href="pedidos.html" class="btn btn-primary">Hacer un Pedido</a>
+        </section>
+
+        <section class="bento-grid">
+            <a href="galeria.html#carboncillo" class="bento-card span-2">
+                <div>
+                    <h3>Realismo a Carboncillo</h3>
+                    <p>Retratos detallados con profundidad y emoción.</p>
+                </div>
+                <img src="assets/images/Carboncillo/Carboncillo1.jpg" class="card-img" alt="Carboncillo">
+            </a>
+            
+            <a href="galeria.html#digital" class="bento-card">
+                <div>
+                    <h3>Digital Art</h3>
+                    <p>Diseño de personajes y anime.</p>
+                </div>
+                <img src="assets/images/Digital/Digital1.jpg" class="card-img" alt="Digital">
+            </a>
+            
+            <a href="galeria.html#lienzo" class="bento-card">
+                <div>
+                    <h3>Lienzos al Óleo</h3>
+                    <p>Texturas clásicas y vibrantes.</p>
+                </div>
+                <img src="assets/images/lienzo/lienzo1.jpg" class="card-img" alt="Oleo">
+            </a>
+            
+            <a href="pedidos.html" class="bento-card span-2">
+                <div>
+                    <h3>Proceso Transparente</h3>
+                    <p>Sigue el estado de tu dibujo desde el boceto hasta el envío final.</p>
+                </div>
+                <div style="margin-top:20px; padding:20px; background:#111; border-radius:8px; font-family:monospace; color:var(--primary-glow); font-size:0.9rem;">
+                    > Status: Boceto Aprobado... OK<br>
+                    > Status: Aplicando color... 60%<br>
+                    > Est. Entrega: 2 días
+                </div>
+            </a>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 LunarLines. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    
+    <script>
+        async function updateNavbarAvatar() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            const navUserLink = document.getElementById('navUserIcon');
+            const navAvatarImg = document.getElementById('navUserAvatarImg');
+            const navLoginBtn = document.getElementById('navLoginBtn'); 
+            const navRegBtn = document.getElementById('navRegBtn'); 
+
+            if (session && navUserLink && navAvatarImg) {
+                const { data: profile } = await _supabase.from('profiles').select('avatar_url, username').eq('id', session.user.id).single();
+                if (profile && profile.avatar_url) {
+                    navAvatarImg.src = profile.avatar_url + "?t=" + new Date().getTime();
+                } else {
+                    const initial = (profile?.username || session.user.email).charAt(0).toUpperCase();
+                    navAvatarImg.src = `https://ui-avatars.com/api/?name=${initial}&background=5e6ad2&color=fff&size=35&bold=true`;
+                }
+                navUserLink.style.display = "block";
+                navUserLink.href = "dashboard.html";
+                if (navLoginBtn) navLoginBtn.style.display = 'none';
+                if (navRegBtn) navRegBtn.style.display = 'none';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateNavbarAvatar);
+    </script>
+</body>
+</html>

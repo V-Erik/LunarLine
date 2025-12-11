@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Admin | LunarLines</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">🌙 AdminPanel</a>
+        <div class="nav-links">
+            <a href="index.html">Ver Web</a>
+            <a href="galeria.html">Ver Galería</a>
+        </div>
+        <div class="nav-actions">
+            <button id="btnLogout" class="btn btn-ghost" style="border: 1px solid red; color: red;">Cerrar Sesión</button>
+        </div>
+    </nav>
+
+    <main class="container" style="padding-top: 120px;">
+        <div class="auth-card" style="max-width: 600px; margin: 0 auto;">
+            <h2 style="text-align: center;">Subir Nueva Obra</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">Publica arte directamente a la galería.</p>
+            
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label class="form-label">Título</label>
+                    <input type="text" id="titulo" class="form-input" placeholder="Ej: Atardecer Rojo" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Categoría</label>
+                    <select id="categoria" class="form-input">
+                        <option value="carboncillo">Carboncillo</option>
+                        <option value="lienzo">Lienzo</option>
+                        <option value="digital">Digital</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Imagen</label>
+                    <input type="file" id="imagen" class="form-input" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Subir Obra</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    
+    <script>
+        // 1. Proteger ruta: Si no hay sesión, mandar al login
+        async function checkAuth() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+        checkAuth();
+
+        // 2. Cerrar Sesión
+        document.getElementById('btnLogout').addEventListener('click', async () => {
+            await _supabase.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        // 3. Subir Foto
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            
+            btn.textContent = "Subiendo...";
+            btn.disabled = true;
+
+            const file = document.getElementById('imagen').files[0];
+            const titulo = document.getElementById('titulo').value;
+            const categoria = document.getElementById('categoria').value;
+
+            // A. Subir imagen al Bucket
+            const url = await subirImagen(file);
+
+            if (url) {
+                // B. Guardar datos en la Tabla
+                const success = await guardarObraBD(titulo, categoria, url);
+                if (success) {
+                    alert('✅ ¡Obra publicada correctamente!');
+                    e.target.reset();
+                }
+            }
+            
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Espacio | LunarLines</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .preview-box { width: 100%; height: 250px; background-color: rgba(255, 255, 255, 0.02); border: 2px dashed var(--border-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; overflow: hidden; position: relative; }
+        .preview-box img { width: 100%; height: 100%; object-fit: contain; display: none; }
+        .preview-text { color: var(--text-muted); font-size: 0.9rem; pointer-events: none; }
+    </style>
+</head>
+<body>
+    
+    <nav class="navbar">
+        <a href="dashboard.html" class="logo">🌙 Mi Espacio</a>
+        <div class="nav-links">
+            <a href="galeria.html">Ver Galería Pública</a>
+            <a href="pedidos.html">Hacer Pedido</a>
+        </div>
+        <div class="nav-actions">
+            <a href="perfil.html" class="nav-user-link" id="navUserIcon">
+                <img src="" alt="Mi Perfil" class="nav-user-avatar" id="navUserAvatarImg">
+            </a>
+            <button id="btnLogout" class="btn btn-ghost" style="color: #e93d82; border: 1px solid #e93d82;">Cerrar Sesión</button>
+        </div>
+    </nav>
+
+    <main class="container" style="padding-top: 120px;">
+        <div id="custom-notification"></div> <section style="margin-bottom: 40px;">
+            <h1>Hola, <span id="userEmail" class="text-gradient">Artista</span></h1>
+            <p style="color: var(--text-muted);">Bienvenido a tu panel de control.</p>
+        </section>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+            <div class="bento-card">
+                <h3>📤 Publicar Nueva Obra</h3>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Sube tus creaciones.</p>
+                <form id="uploadForm">
+                    <div class="form-group"><label class="form-label">Título</label><input type="text" id="titulo" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label">Categoría</label><select id="categoria" class="form-input"><option value="carboncillo">Carboncillo</option><option value="lienzo">Lienzo</option><option value="digital">Digital</option></select></div>
+                    <div class="form-group"><label class="form-label">Imagen</label><div class="preview-box"><span class="preview-text">📂 Seleccionar</span><img id="previewImage" src=""></div><input type="file" id="imagen" class="form-input" accept="image/*" required></div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">🚀 Publicar Ahora</button>
+                </form>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <a href="perfil.html" class="bento-card" style="text-align: center; cursor: pointer; text-decoration: none;"><div style="font-size: 3rem;">👤</div><h3 style="margin-top: 10px;">Mi Perfil</h3><p style="font-size: 0.9rem;">Ver y gestionar mis obras</p></a>
+                <a href="pedidos.html" class="bento-card" style="text-align: center; cursor: pointer; text-decoration: none;"><div style="font-size: 3rem;">🎨</div><h3 style="margin-top: 10px;">Pedir una Obra</h3></a>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/notifications.js"></script>
+
+    <script>
+        async function initDashboard() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) window.location.href = 'login.html';
+            else document.getElementById('userEmail').textContent = session.user.email.split('@')[0];
+
+            // Cargar Avatar Navbar
+            const navAvatarImg = document.getElementById('navUserAvatarImg');
+            const navUserLink = document.getElementById('navUserIcon');
+            const { data: profile } = await _supabase.from('profiles').select('avatar_url, username').eq('id', session.user.id).single();
+            
+            if (profile && profile.avatar_url) navAvatarImg.src = profile.avatar_url + "?t=" + new Date().getTime();
+            else {
+                const initial = (profile?.username || session.user.email).charAt(0).toUpperCase();
+                navAvatarImg.src = `https://ui-avatars.com/api/?name=${initial}&background=5e6ad2&color=fff&size=35&bold=true`;
+            }
+            navUserLink.style.display = "block";
+        }
+        initDashboard();
+
+        document.getElementById('btnLogout').addEventListener('click', async () => { await _supabase.auth.signOut(); window.location.href = 'index.html'; });
+
+        const imagenInput = document.getElementById('imagen');
+        const previewImage = document.getElementById('previewImage');
+        const previewText = document.querySelector('.preview-text');
+        imagenInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) { previewImage.src = URL.createObjectURL(file); previewImage.style.display = 'block'; previewText.style.display = 'none'; }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.textContent = "Subiendo..."; btn.disabled = true;
+            
+            const file = imagenInput.files[0];
+            const titulo = document.getElementById('titulo').value;
+            const categoria = document.getElementById('categoria').value;
+            
+            const url = await subirImagen(file);
+            if (url) {
+                const success = await guardarObraBD(titulo, categoria, url);
+                if (success) { showNotify('¡Éxito!', 'Obra publicada correctamente.'); e.target.reset(); previewImage.style.display = 'none'; previewText.style.display = 'block'; }
+            }
+            btn.textContent = "🚀 Publicar Ahora"; btn.disabled = false;
+        });
+    </script>
+</body>
+</html>

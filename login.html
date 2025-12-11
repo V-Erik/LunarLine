@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Entrar - LunarLines</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <div id="custom-notification"></div>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <h2 style="text-align:center;">Bienvenido</h2>
+            <p style="text-align:center; color:var(--text-muted); margin-bottom:30px;">Inicia sesión para administrar.</p>
+            <form id="loginFormReal">
+                <div class="form-group"><label class="form-label">Email</label><input type="email" id="login-email" class="form-input" required></div>
+                <div class="form-group"><label class="form-label">Contraseña</label><input type="password" id="login-password" class="form-input" required></div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">Iniciar Sesión</button>
+            </form>
+            <p style="text-align:center; margin-top:20px; font-size:0.9rem;"><a href="index.html">← Volver</a> | <a href="registro.html">Registrarse</a></p>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/notifications.js"></script>
+    <script>
+        document.getElementById('loginFormReal').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button'); btn.textContent = "Verificando..."; btn.disabled = true;
+            const { error } = await _supabase.auth.signInWithPassword({ email: document.getElementById('login-email').value, password: document.getElementById('login-password').value });
+            if (error) { showNotify("Error", "Credenciales incorrectas.", "error"); btn.textContent = "Iniciar Sesión"; btn.disabled = false; }
+            else window.location.href = 'dashboard.html';
+        });
+    </script>
+</body>
+</html>

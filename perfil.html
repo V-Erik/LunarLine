@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Perfil | LunarLines</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        /* HEADER PERFIL */
+        .profile-header { display: flex; align-items: center; gap: 40px; margin-bottom: 40px; padding-bottom: 40px; border-bottom: 1px solid var(--border-color); }
+        .profile-pic-container { position: relative; cursor: pointer; width: 150px; height: 150px; flex-shrink: 0; }
+        .profile-pic { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: linear-gradient(135deg, var(--primary-glow), var(--accent-glow)); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white; font-weight: bold; border: 4px solid var(--bg-body); }
+        .edit-overlay { position: absolute; top:0; left:0; width:100%; height:100%; border-radius:50%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; color: white; font-size: 1.5rem; }
+        .profile-pic-container:hover .edit-overlay { opacity: 1; }
+        .profile-info { flex: 1; }
+        .profile-info h2 { font-size: 2rem; margin-bottom: 5px; font-weight: 300; }
+        .profile-bio { color: var(--text-muted); margin-bottom: 20px; max-width: 600px; line-height: 1.5; font-size: 0.95rem; }
+        .stats { display: flex; gap: 30px; margin-bottom: 20px; font-size: 1rem; }
+        .stats span { color: white; font-weight: 700; }
+        .action-buttons { display: flex; gap: 10px; }
+        .btn-small { padding: 8px 16px; font-size: 0.9rem; }
+        .edit-mode .display-view { display: none; } .edit-mode .edit-view { display: block; } .edit-view { display: none; }
+        .edit-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; color: white; margin-bottom: 10px; font-family: inherit; }
+
+        /* GRID */
+        .my-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 20px; }
+        .my-item { position: relative; aspect-ratio: 1/1; overflow: hidden; background: #111; cursor: pointer; }
+        .my-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .my-item:hover img { opacity: 0.7; }
+        .btn-delete { position: absolute; top: 8px; right: 8px; background: rgba(0, 0, 0, 0.6); color: white; width: 30px; height: 30px; border-radius: 4px; border: none; display: none; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); z-index: 5; }
+        .my-item:hover .btn-delete { display: flex; }
+        .btn-delete:hover { background: #e93d82; }
+
+        /* MODALES (Subida, Visor y Borrar) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .modal-active { display: flex; }
+        .modal-content { background: #0e0e12; border: 1px solid var(--border-color); padding: 30px; border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+        
+        /* CONFIRMACION DE BORRADO */
+        .confirm-actions { display: flex; gap: 15px; margin-top: 25px; justify-content: flex-end; }
+        .btn-danger { background: rgba(233, 61, 130, 0.1); border: 1px solid #e93d82; color: #e93d82; }
+        .btn-danger:hover { background: #e93d82; color: white; }
+
+        /* VISOR LIGHTBOX */
+        .viewer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .viewer-active { display: flex; animation: fadeIn 0.2s ease-out; }
+        .viewer-card { display: flex; background: #000; max-width: 1100px; width: 100%; max-height: 85vh; border-radius: 4px; overflow: hidden; }
+        .viewer-img-box { flex: 1.5; background: #000; display: flex; align-items: center; justify-content: center; }
+        .viewer-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .viewer-info { flex: 1; background: #0e0e12; padding: 30px; display: flex; flex-direction: column; border-left: 1px solid var(--border-color); min-width: 320px; }
+        .close-viewer { position: absolute; top: 20px; right: 30px; font-size: 2.5rem; color: white; cursor: pointer; z-index: 3001; }
+        .viewer-title { font-size: 1.5rem; margin-bottom: 5px; color: white; }
+        .viewer-cat { display: inline-block; padding: 4px 12px; border-radius: 50px; background: rgba(94, 106, 210, 0.1); color: #b4c6ff; font-size: 0.8rem; margin-bottom: 20px; border: 1px solid rgba(94, 106, 210, 0.3); }
+        .viewer-price { font-size: 2rem; color: #4ade80; font-weight: 700; margin-top: auto; margin-bottom: 5px; }
+        .viewer-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .viewer-contact { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-top: 10px; font-family: monospace; font-size: 1.1rem; color: white; border: 1px solid var(--border-color); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @media (max-width: 900px) { .viewer-card { flex-direction: column; overflow-y: auto; } .viewer-img-box { min-height: 300px; } }
+    </style>
+</head>
+<body>
+    <div id="custom-notification"></div>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">🌙 LunarLines</a>
+        <div class="nav-links"><a href="index.html">Inicio</a><a href="galeria.html">Galería</a><a href="pedidos.html">Pedidos</a></div>
+        <div class="nav-actions">
+            <a href="perfil.html" class="nav-user-link" id="navUserIcon" style="display:block;">
+                <img src="" class="nav-user-avatar" id="navUserAvatarImg">
+            </a>
+            <button id="btnLogout" class="btn btn-ghost" style="color: #e93d82;">Salir</button>
+        </div>
+    </nav>
+
+    <main class="container" style="padding-top: 120px; padding-bottom: 80px;">
+        <div class="profile-header" id="profileContainer">
+            <div class="profile-pic-container" onclick="document.getElementById('fileAvatar').click()">
+                <img id="imgAvatar" class="profile-pic" style="display:none;">
+                <div id="placeholderAvatar" class="profile-pic">U</div>
+                <div class="edit-overlay">📷</div>
+                <input type="file" id="fileAvatar" hidden accept="image/*">
+            </div>
+            <div class="profile-info">
+                <div class="display-view">
+                    <h2 id="txtUsername">@...</h2>
+                    <div style="display:flex; gap:30px; margin-bottom:10px; font-weight:bold;"><div><span id="txtCount">0</span> obras</div></div>
+                    <p class="profile-bio" id="txtBio">...</p>
+                    <div class="action-buttons"><button id="btnEdit" class="btn btn-primary btn-small" style="background:transparent; border:1px solid var(--border-color);">Editar perfil</button><button id="btnOpenUpload" class="btn btn-primary btn-small">➕ Nueva Obra</button></div>
+                </div>
+                <div class="edit-view">
+                    <label style="font-size:0.8rem; color:var(--text-muted);">Usuario</label><input type="text" id="inputUsername" class="edit-input">
+                    <label style="font-size:0.8rem; color:var(--text-muted);">Bio</label><textarea id="inputBio" class="edit-input" rows="3"></textarea>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;"><button id="btnSave" class="btn btn-primary">Guardar</button><button id="btnCancel" class="btn btn-ghost">Cancelar</button></div>
+                </div>
+            </div>
+        </div>
+        <div style="border-top: 1px solid var(--border-color); display: flex; justify-content: center; gap: 60px; margin-bottom: 20px;">
+            <div style="border-top: 1px solid white; padding-top: 15px; margin-top: -1px; color: white; font-size: 0.8rem; font-weight: 600; letter-spacing: 1px;">PUBLICACIONES</div>
+        </div>
+        <div class="my-gallery" id="gridObras"></div>
+    </main>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🗑️</div>
+            <h3 style="margin-bottom: 10px;">¿Eliminar publicación?</h3>
+            <p style="color: var(--text-muted);">Esta acción no se puede deshacer. ¿Estás seguro?</p>
+            <div class="confirm-actions" style="justify-content: center;">
+                <button id="cancelDelete" class="btn btn-ghost">Cancelar</button>
+                <button id="confirmDelete" class="btn btn-primary btn-danger">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal-content">
+            <span class="close-modal" id="btnCloseModal">&times;</span>
+            <h3 style="margin-bottom: 20px;">Subir Nueva Obra</h3>
+            <form id="modalUploadForm">
+                <div class="form-group"><label class="form-label">Título</label><input type="text" id="modTitulo" class="form-input" required></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group"><label class="form-label">Categoría</label><select id="modCategoria" class="form-input"><option value="carboncillo">Carboncillo</option><option value="lienzo">Lienzo</option><option value="digital">Digital</option></select></div>
+                    <div class="form-group"><label class="form-label">Precio ($)</label><input type="text" id="modPrecio" class="form-input" placeholder="$50"></div>
+                </div>
+                <div class="form-group"><label class="form-label">Contacto</label><input type="text" id="modContacto" class="form-input" placeholder="Email / Tel" required></div>
+                <div class="form-group"><input type="file" id="modFile" class="form-input" accept="image/*" required></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Publicar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="viewer-overlay" id="imageViewer">
+        <span class="close-viewer" id="btnCloseViewer">&times;</span>
+        <div class="viewer-card" id="viewerCard">
+            <div class="viewer-img-box"><img src="" id="viewImg"></div>
+            <div class="viewer-info">
+                <h2 id="viewTitle" class="viewer-title">Título</h2>
+                <div><span id="viewCat" class="viewer-cat">Categoría</span></div>
+                <div style="margin-top: auto;">
+                    <div class="viewer-label">PRECIO</div><div id="viewPrice" class="viewer-price">$0</div>
+                    <div class="viewer-label" style="margin-top: 20px;">CONTACTO</div><div id="viewContact" class="viewer-contact">...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/notifications.js"></script>
+
+    <script>
+        let currentUser = null;
+        let deleteTargetId = null; // Variable para saber qué borrar
+        const container = document.getElementById('profileContainer');
+
+        async function init() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'login.html'; return; }
+            currentUser = session.user;
+            cargarPerfil(); cargarObras();
+        }
+
+        async function cargarPerfil() {
+            const { data: perfil } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+            let displayName = "@" + currentUser.email.split('@')[0];
+            let displayBio = "Sin descripción.";
+            let avatarUrl = null;
+            if (perfil) {
+                if (perfil.username) displayName = "@" + perfil.username;
+                if (perfil.bio) displayBio = perfil.bio;
+                avatarUrl = perfil.avatar_url;
+            }
+            document.getElementById('txtUsername').textContent = displayName;
+            document.getElementById('txtBio').textContent = displayBio;
+            document.getElementById('inputUsername').value = displayName.replace('@','');
+            document.getElementById('inputBio').value = displayBio;
+            
+            const navAvatarImg = document.getElementById('navUserAvatarImg');
+            if (avatarUrl) {
+                const url = avatarUrl + "?t=" + Date.now();
+                document.getElementById('imgAvatar').src = url;
+                document.getElementById('imgAvatar').style.display='flex';
+                document.getElementById('placeholderAvatar').style.display='none';
+                navAvatarImg.src = url;
+            } else {
+                const initial = displayName.replace('@','').charAt(0).toUpperCase();
+                document.getElementById('placeholderAvatar').textContent = initial;
+                navAvatarImg.src = `https://ui-avatars.com/api/?name=${initial}&background=5e6ad2&color=fff&size=35&bold=true`;
+            }
+        }
+
+        async function cargarObras() {
+            const grid = document.getElementById('gridObras');
+            const { data: obras } = await _supabase.from('obras').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+            if (obras) {
+                document.getElementById('txtCount').textContent = obras.length;
+                grid.innerHTML = "";
+                if(obras.length===0) grid.innerHTML=`<div style="grid-column:span 3;text-align:center;padding:60px;color:#888;">No hay publicaciones.</div>`;
+                obras.forEach(obra => {
+                    const div = document.createElement('div'); div.className = 'my-item';
+                    const img = document.createElement('img'); img.src = obra.url_imagen;
+                    img.onclick = () => openViewer(obra);
+                    const btn = document.createElement('button'); btn.className = 'btn-delete'; btn.innerHTML = '🗑️';
+                    
+                    // Aquí llamamos al modal bonito
+                    btn.onclick = (e) => { e.stopPropagation(); openDeleteModal(obra.id); };
+                    
+                    div.appendChild(img); div.appendChild(btn); grid.appendChild(div);
+                });
+            }
+        }
+
+        // --- LÓGICA DE BORRADO BONITO ---
+        const deleteModal = document.getElementById('deleteModal');
+        function openDeleteModal(id) {
+            deleteTargetId = id;
+            deleteModal.classList.add('modal-active');
+        }
+        document.getElementById('cancelDelete').onclick = () => { deleteModal.classList.remove('modal-active'); deleteTargetId = null; };
+        
+        document.getElementById('confirmDelete').onclick = async () => {
+            if (deleteTargetId) {
+                const { error } = await _supabase.from('obras').delete().eq('id', deleteTargetId);
+                deleteModal.classList.remove('modal-active');
+                if (error) showNotify("Error", "No se pudo borrar.", "error");
+                else { showNotify("Eliminado", "Publicación borrada.", "success"); cargarObras(); }
+            }
+        };
+
+        // --- VISOR ---
+        const viewer = document.getElementById('imageViewer');
+        function openViewer(obra) {
+            document.getElementById('viewImg').src = obra.url_imagen;
+            document.getElementById('viewTitle').textContent = obra.titulo;
+            document.getElementById('viewCat').textContent = obra.categoria;
+            document.getElementById('viewPrice').textContent = obra.precio ? `$${obra.precio}` : "Consultar";
+            document.getElementById('viewContact').textContent = obra.contacto || "No especificado";
+            viewer.classList.add('viewer-active');
+        }
+        document.getElementById('btnCloseViewer').onclick = () => viewer.classList.remove('viewer-active');
+        viewer.onclick = (e) => { if(e.target === viewer) viewer.classList.remove('viewer-active'); }
+
+        // --- MODAL SUBIDA ---
+        const uploadModal = document.getElementById('uploadModal');
+        document.getElementById('btnOpenUpload').onclick = () => uploadModal.classList.add('modal-active');
+        document.getElementById('btnCloseModal').onclick = () => uploadModal.classList.remove('modal-active');
+        document.getElementById('modalUploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button'); btn.textContent="Subiendo..."; btn.disabled=true;
+            const file = document.getElementById('modFile').files[0];
+            const url = await subirImagen(file);
+            if(url) {
+                await guardarObraBD(document.getElementById('modTitulo').value, document.getElementById('modCategoria').value, url, document.getElementById('modPrecio').value, document.getElementById('modContacto').value);
+                showNotify("¡Éxito!", "Obra publicada."); uploadModal.classList.remove('modal-active'); e.target.reset(); cargarObras();
+            }
+            btn.textContent="Publicar"; btn.disabled=false;
+        });
+
+        // --- PERFIL ---
+        document.getElementById('btnEdit').onclick = () => container.classList.add('edit-mode');
+        document.getElementById('btnCancel').onclick = () => container.classList.remove('edit-mode');
+        document.getElementById('btnSave').onclick = async () => {
+            await _supabase.from('profiles').upsert({ id: currentUser.id, username: document.getElementById('inputUsername').value, bio: document.getElementById('inputBio').value });
+            showNotify("Listo", "Perfil actualizado."); container.classList.remove('edit-mode'); cargarPerfil();
+        };
+        document.getElementById('fileAvatar').onchange = async (e) => {
+            const file = e.target.files[0]; if(!file)return;
+            showNotify("Subiendo...", "Procesando...");
+            const fileName = `${currentUser.id}/avatar.jpg`;
+            await _supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
+            const { data } = _supabase.storage.from('avatars').getPublicUrl(fileName);
+            await _supabase.from('profiles').upsert({ id: currentUser.id, avatar_url: data.publicUrl });
+            showNotify("¡Listo!", "Foto actualizada.", "success"); setTimeout(()=>location.reload(), 1000);
+        };
+
+        document.getElementById('btnLogout').onclick = async () => { await _supabase.auth.signOut(); window.location.href = 'index.html'; };
+        init();
+    </script>
+</body>
+</html>

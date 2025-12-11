@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LunarLines | Pedidos</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <script type="text/javascript">
+       (function(){
+          // ✅ TU PUBLIC KEY (Confirmada en foto image_720d1a.png)
+          emailjs.init("IE1zp4dWO9zc0TDoe");
+       })();
+    </script>
+</head>
+<body>
+    <div id="custom-notification"></div>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">🌙 LunarLines</a>
+        <div class="nav-links">
+            <a href="index.html">Inicio</a>
+            <a href="galeria.html">Galería</a>
+            <a href="pedidos.html" class="active">Pedidos</a>
+        </div>
+        <div class="nav-actions">
+            <a href="dashboard.html" class="nav-user-link" id="navUserIcon">
+                <img src="" class="nav-user-avatar" id="navUserAvatarImg">
+            </a>
+            <a href="login.html" id="navLoginBtn" class="btn btn-ghost">Entrar</a>
+        </div>
+    </nav>
+
+    <main class="container" style="padding-top: 120px; padding-bottom: 60px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px;">
+            
+            <div>
+                <h2>Configura tu Obra</h2>
+                <p style="color:var(--text-muted); margin-bottom:30px;">Describe tu idea y te contactaremos.</p>
+                
+                <form id="orderForm">
+                    <div class="form-group">
+                        <label class="form-label">Tu Contacto (Email o WhatsApp)</label>
+                        <input type="text" id="contactoCliente" class="form-input" placeholder="ej: erik@gmail.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Arte</label>
+                        <select id="tipoArte" class="form-input">
+                            <option value="carboncillo">Dibujo a Carboncillo</option>
+                            <option value="lienzo">Pintura en Lienzo (Óleo/Acrílico)</option>
+                            <option value="digital">Ilustración Digital</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tamaño Preferido</label>
+                        <select id="tamano" class="form-input">
+                            <option>A4 (21 x 30 cm)</option>
+                            <option>A3 (30 x 42 cm)</option>
+                            <option>Lienzo Grande (50 x 70 cm)</option>
+                            <option>Digital 4K</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descripción Detallada</label>
+                        <textarea id="descripcion" rows="5" class="form-input" placeholder="Ej: Quiero un retrato realista..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
+                </form>
+            </div>
+
+            <div class="bento-card" style="height: fit-content;">
+                <h3>Resumen</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">Los precios varían según la complejidad.</p>
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+                
+                <p>Tiempo estimado: <span id="summaryTime" style="color:white; float:right;">1-2 Semanas</span></p>
+                <p>Envío: <span id="summaryShipping" style="color:white; float:right;">Global</span></p>
+                <p style="margin-top: 10px;">Costo Base Aprox: <span id="summaryPrice" style="color:var(--primary-glow); float:right; font-weight:bold;">$45 - $80</span></p>
+
+                <div style="margin-top: 20px; padding: 15px; background: rgba(94, 106, 210, 0.1); border-radius: 6px; color: #b4c6ff; font-size: 0.85rem;">
+                    🔒 Pago protegido por LunarLines Secure.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+
+    <script>
+        // 1. Detectar Sesión para Avatar
+        async function updateNavbar() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            const navLoginBtn = document.getElementById('navLoginBtn');
+            const navUserLink = document.getElementById('navUserIcon');
+            const navAvatarImg = document.getElementById('navUserAvatarImg');
+
+            if (session) {
+                if(navLoginBtn) navLoginBtn.style.display = 'none';
+                
+                const { data: profile } = await _supabase.from('profiles').select('avatar_url, username').eq('id', session.user.id).single();
+                if (profile && profile.avatar_url) navAvatarImg.src = profile.avatar_url + "?t=" + new Date().getTime();
+                else {
+                    const initial = (profile?.username || session.user.email).charAt(0).toUpperCase();
+                    navAvatarImg.src = `https://ui-avatars.com/api/?name=${initial}&background=5e6ad2&color=fff&size=35&bold=true`;
+                }
+                navUserLink.style.display = "block";
+                navUserLink.href = "dashboard.html";
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateNavbar);
+
+        // 2. Precios Dinámicos
+        const tipoArteSelect = document.getElementById('tipoArte');
+        const summaryTime = document.getElementById('summaryTime');
+        const summaryPrice = document.getElementById('summaryPrice');
+        const summaryShipping = document.getElementById('summaryShipping');
+
+        tipoArteSelect.addEventListener('change', () => {
+            const val = tipoArteSelect.value;
+            if(val==='carboncillo'){ summaryTime.textContent='1-2 Semanas'; summaryPrice.textContent='$45 - $80'; summaryShipping.textContent='Físico (Global)'; }
+            else if(val==='lienzo'){ summaryTime.textContent='3-4 Semanas'; summaryPrice.textContent='$120 - $300'; summaryShipping.textContent='Físico (Caja madera)'; }
+            else { summaryTime.textContent='3-5 Días'; summaryPrice.textContent='$30 - $60'; summaryShipping.textContent='Email / Nube'; }
+        });
+
+        // 3. ENVIAR CORREO (CON ID CORREGIDO)
+        document.getElementById('orderForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const desc = document.getElementById('descripcion').value;
+            const contacto = document.getElementById('contactoCliente').value;
+
+            if(desc.length < 5 || contacto.length < 5) { 
+                showNotify("Error", "Por favor completa bien los campos.", "error"); 
+                return; 
+            }
+
+            btn.textContent = "Enviando...";
+            btn.disabled = true;
+            
+            const params = {
+                tipo: tipoArteSelect.options[tipoArteSelect.selectedIndex].text,
+                tamano: document.getElementById('tamano').value,
+                descripcion: desc,
+                contacto: contacto,
+                precio: summaryPrice.textContent
+            };
+
+            // ✅ SERVICE ID CORREGIDO (Sacado de tu foto image_7205b9.png)
+            const serviceID = 'service_bb5fi5a'; 
+            
+            // ✅ TEMPLATE ID (Sacado de tu foto image_720d5a.png)
+            const templateID = 'template_1qawpds'; 
+
+            emailjs.send(serviceID, templateID, params)
+                .then(() => {
+                    showNotify("¡Enviado!", "Tu pedido ha sido recibido.", "success");
+                    e.target.reset();
+                    btn.textContent = "Enviar Solicitud";
+                    btn.disabled = false;
+                }, (err) => {
+                    // Si falla, muestra el error real en pantalla para depurar
+                    console.error("Error EmailJS:", err);
+                    showNotify("Error", "Revisa la consola: " + JSON.stringify(err), "error");
+                    btn.textContent = "Enviar Solicitud";
+                    btn.disabled = false;
+                });
+        });
+    </script>
+</body>
+</html>

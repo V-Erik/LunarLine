@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro - LunarLines</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <div id="custom-notification"></div>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <h2 style="text-align:center;">Crear Cuenta</h2>
+            <p style="text-align:center; color:var(--text-muted); margin-bottom:30px;">Únete a la comunidad.</p>
+            <form id="registerForm">
+                <div class="form-group"><label class="form-label">Email</label><input type="email" id="reg-email" class="form-input" required></div>
+                <div class="form-group"><label class="form-label">Contraseña</label><input type="password" id="reg-password" class="form-input" placeholder="Min 6 caracteres" required></div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">Registrarse</button>
+            </form>
+            <p style="text-align:center; margin-top:20px; font-size:0.9rem;"><a href="login.html">Ya tengo cuenta</a></p>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/notifications.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-password').value;
+            if (pass.length < 6) { showNotify("Error", "Contraseña muy corta.", "error"); return; }
+            
+            const btn = e.target.querySelector('button'); btn.textContent = "Registrando..."; btn.disabled = true;
+            const { error } = await _supabase.auth.signUp({ email: email, password: pass });
+            if (error) { showNotify("Error", error.message, "error"); btn.textContent = "Registrarse"; btn.disabled = false; }
+            else { showNotify("¡Cuenta Creada!", "Revisa tu correo para confirmar.", "success"); setTimeout(()=>window.location.href='login.html', 3000); }
+        });
+    </script>
+</body>
+</html>

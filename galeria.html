@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LunarLines | Galería</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        /* Estilos del Visor */
+        .viewer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .viewer-active { display: flex; animation: fadeIn 0.25s ease-out; }
+        .viewer-card { display: flex; background: #000; border: 1px solid var(--border-color); max-width: 1100px; width: 100%; max-height: 85vh; border-radius: 8px; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .viewer-img-box { flex: 1.5; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
+        .viewer-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .viewer-info { flex: 1; background: #0e0e12; padding: 30px; display: flex; flex-direction: column; border-left: 1px solid var(--border-color); min-width: 320px; }
+        .viewer-title { font-size: 1.8rem; margin-bottom: 5px; color: white; line-height: 1.2; }
+        .viewer-cat { display: inline-block; padding: 4px 12px; border-radius: 50px; background: rgba(94, 106, 210, 0.1); color: #b4c6ff; font-size: 0.85rem; margin-bottom: 25px; border: 1px solid rgba(94, 106, 210, 0.3); }
+        .viewer-details { margin-top: auto; }
+        .viewer-price { font-size: 2.2rem; color: #4ade80; font-weight: 700; margin-bottom: 20px; }
+        .viewer-contact { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; font-family: monospace; font-size: 1rem; color: white; border: 1px solid var(--border-color); }
+        .close-viewer { position: absolute; top: 20px; right: 30px; font-size: 2.5rem; color: white; cursor: pointer; z-index: 3001; transition: 0.2s; }
+        .close-viewer:hover { color: #e93d82; transform: scale(1.1); }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @media (max-width: 900px) { .viewer-card { flex-direction: column; overflow-y: auto; } .viewer-img-box { min-height: 300px; max-height: 50vh; } .viewer-info { padding: 20px; } }
+        .gallery-item img { cursor: zoom-in; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">🌙 LunarLines</a>
+        <div class="nav-links"><a href="index.html">Inicio</a><a href="galeria.html" class="active">Galería</a><a href="pedidos.html">Pedidos</a></div>
+        <div class="nav-actions">
+            <a href="dashboard.html" class="nav-user-link" id="navUserIcon"><img src="" alt="Mi Perfil" class="nav-user-avatar" id="navUserAvatarImg"></a>
+            <a href="login.html" id="navLoginBtn" class="btn btn-ghost">Entrar</a>
+            <a href="registro.html" id="navRegBtn" class="btn btn-primary">Registrarse</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero" style="padding-bottom: 40px;">
+            <h1>Colección Completa</h1>
+            <p>Explora nuestras obras maestras.</p>
+        </section>
+
+        <div class="filter-container">
+            <button class="filter-btn active" data-filter="all">Todas</button>
+            <button class="filter-btn" data-filter="carboncillo">Carboncillo</button>
+            <button class="filter-btn" data-filter="lienzo">Lienzos</button>
+            <button class="filter-btn" data-filter="digital">Digital</button>
+        </div>
+
+        <div class="gallery-grid">
+            
+            <div class="gallery-item" data-category="carboncillo"><img src="assets/images/Carboncillo/Carboncillo1.jpg" onclick="openViewer(this.src, 'Retrato #1', 'Carboncillo')" loading="lazy"></div>
+            <div class="gallery-item" data-category="carboncillo"><img src="assets/images/Carboncillo/Carboncillo2.jpg" onclick="openViewer(this.src, 'Retrato #2', 'Carboncillo')" loading="lazy"></div>
+            <div class="gallery-item" data-category="carboncillo"><img src="assets/images/Carboncillo/Carboncillo3.jpg" onclick="openViewer(this.src, 'Boceto #3', 'Carboncillo')" loading="lazy"></div>
+            <div class="gallery-item" data-category="carboncillo"><img src="assets/images/Carboncillo/Carboncillo4.jpg" onclick="openViewer(this.src, 'Estudio #4', 'Carboncillo')" loading="lazy"></div>
+            <div class="gallery-item" data-category="carboncillo"><img src="assets/images/Carboncillo/Carboncillo5.jpg" onclick="openViewer(this.src, 'Figura #5', 'Carboncillo')" loading="lazy"></div>
+
+            <div class="gallery-item" data-category="lienzo"><img src="assets/images/lienzo/lienzo1.jpg" onclick="openViewer(this.src, 'Espacio #1', 'Óleo')" loading="lazy"></div>
+            <div class="gallery-item" data-category="lienzo"><img src="assets/images/lienzo/lienzo2.jpg" onclick="openViewer(this.src, 'Naturaleza #2', 'Acrílico')" loading="lazy"></div>
+            <div class="gallery-item" data-category="lienzo"><img src="assets/images/lienzo/lienzo3.jpg" onclick="openViewer(this.src, 'Paisaje #3', 'Óleo')" loading="lazy"></div>
+            <div class="gallery-item" data-category="lienzo"><img src="assets/images/lienzo/lienzo4.jpg" onclick="openViewer(this.src, 'Abstracto #4', 'Mixta')" loading="lazy"></div>
+            <div class="gallery-item" data-category="lienzo"><img src="assets/images/lienzo/lienzo5.jpg" onclick="openViewer(this.src, 'Retrato #5', 'Óleo')" loading="lazy"></div>
+            <div class="gallery-item" data-category="lienzo"><img src="assets/images/lienzo/lienzo6.jpg" onclick="openViewer(this.src, 'Composición #6', 'Acrílico')" loading="lazy"></div>
+
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital1.jpg" onclick="openViewer(this.src, 'Digital 1', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital2.jpg" onclick="openViewer(this.src, 'Digital 2', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital3.jpg" onclick="openViewer(this.src, 'Digital 3', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital4.jpg" onclick="openViewer(this.src, 'Digital 4', 'Digital')" loading="lazy"></div>
+            
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital5.png" onclick="openViewer(this.src, 'Digital 5', 'Digital')" loading="lazy"></div>
+            
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital6.jpg" onclick="openViewer(this.src, 'Digital 6', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital7.jpg" onclick="openViewer(this.src, 'Digital 7', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital8.jpg" onclick="openViewer(this.src, 'Digital 8', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital9.jpg" onclick="openViewer(this.src, 'Digital 9', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital10.jpg" onclick="openViewer(this.src, 'Digital 10', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital11.jpg" onclick="openViewer(this.src, 'Digital 11', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital12.jpg" onclick="openViewer(this.src, 'Digital 12', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital13.jpg" onclick="openViewer(this.src, 'Digital 13', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital14.jpg" onclick="openViewer(this.src, 'Digital 14', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital15.jpg" onclick="openViewer(this.src, 'Digital 15', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital16.jpg" onclick="openViewer(this.src, 'Digital 16', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital17.jpg" onclick="openViewer(this.src, 'Digital 17', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital18.jpg" onclick="openViewer(this.src, 'Digital 18', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital19.jpg" onclick="openViewer(this.src, 'Digital 19', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital20.jpg" onclick="openViewer(this.src, 'Digital 20', 'Digital')" loading="lazy"></div>
+            <div class="gallery-item" data-category="digital"><img src="assets/images/Digital/Digital21.jpg" onclick="openViewer(this.src, 'Digital 21', 'Digital')" loading="lazy"></div>
+        </div>
+    </main>
+
+    <div class="viewer-overlay" id="imageViewer">
+        <span class="close-viewer" id="btnCloseViewer">&times;</span>
+        <div class="viewer-card" id="viewerCard">
+            <div class="viewer-img-box"><img src="" id="viewImg"></div>
+            <div class="viewer-info">
+                <h2 id="viewTitle" class="viewer-title">Título</h2>
+                <div><span id="viewCat" class="viewer-cat">Categoría</span></div>
+                <div class="viewer-details">
+                    <div style="font-size:0.8rem;color:#888;">PRECIO</div><div id="viewPrice" class="viewer-price">Consultar</div>
+                    <div style="font-size:0.8rem;color:#888;margin-top:20px;">CONTACTO</div><div id="viewContact" class="viewer-contact">LunarLines Oficial</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+
+    <script>
+        const viewer = document.getElementById('imageViewer');
+        window.openViewer = function(imgSrc, title, category, price="Consultar", contact="LunarLines Oficial") {
+            document.getElementById('viewImg').src = imgSrc;
+            document.getElementById('viewTitle').textContent = title;
+            document.getElementById('viewCat').textContent = category;
+            document.getElementById('viewPrice').textContent = price;
+            document.getElementById('viewContact').textContent = contact;
+            viewer.classList.add('viewer-active');
+        }
+        document.getElementById('btnCloseViewer').onclick = () => viewer.classList.remove('viewer-active');
+        viewer.onclick = (e) => { if(e.target===viewer) viewer.classList.remove('viewer-active'); }
+
+        async function initPage() {
+            // Navbar Avatar
+            const { data: { session } } = await _supabase.auth.getSession();
+            const navUserLink = document.getElementById('navUserIcon');
+            const navAvatarImg = document.getElementById('navUserAvatarImg');
+            if (session && navUserLink) {
+                const { data: profile } = await _supabase.from('profiles').select('avatar_url, username').eq('id', session.user.id).single();
+                if (profile && profile.avatar_url) navAvatarImg.src = profile.avatar_url + "?t=" + Date.now();
+                else navAvatarImg.src = `https://ui-avatars.com/api/?name=${session.user.email}&background=5e6ad2&color=fff&bold=true`;
+                navUserLink.style.display = "block";
+                document.getElementById('navLoginBtn').style.display='none';
+                document.getElementById('navRegBtn').style.display='none';
+            }
+
+            // Cargar obras dinámicas
+            const { data: obras } = await _supabase.from('obras').select('*').order('created_at', { ascending: false });
+            if (obras) {
+                const container = document.querySelector('.gallery-grid');
+                obras.forEach(obra => {
+                    const div = document.createElement('div');
+                    div.className = 'gallery-item';
+                    div.setAttribute('data-category', obra.categoria);
+                    // IMPORTANTE: Aquí se crean las fotos subidas por usuarios con su evento click
+                    div.innerHTML = `<img src="${obra.url_imagen}" onclick="openViewer('${obra.url_imagen}', '${obra.titulo.replace(/'/g, "&apos;")}', '${obra.categoria}', '${obra.precio || 'Consultar'}', '${(obra.contacto || 'Ver Perfil').replace(/'/g, "&apos;")}')" loading="lazy">`;
+                    container.prepend(div);
+                });
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>
